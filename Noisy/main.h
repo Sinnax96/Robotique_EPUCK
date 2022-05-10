@@ -19,9 +19,18 @@ extern parameter_namespace_t parameter_root;
 }
 #endif
 
-/* Defeine global constants */
+/* Define global constants */
+#define ROBOT_SPEED_MAX		1100
+#define ROBOT_SPEED_PANIC	700
 #define ROBOT_SPEED_MEDIUM	300
 #define ROBOT_SPEED_SLOW	100
 #define ROBOT_SPEED_NULL	0
+#define ROBOT_STATUS_EXPLORATION	0
+#define ROBOT_STATUS_PANIC	1
+
+int getCounterState(void);
+int getRobotStatus(void);
+int changeRobotStatusToExploration(void);
+int changeRobotStatusToPanic(void);
 
 #endif
