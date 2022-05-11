@@ -1,4 +1,4 @@
-/* Written by Quentin Rossier, 04/04/22 */
+/* Written by Quentin Rossier and Quentin Boinay, 11/05/22 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,32 +34,32 @@ static int CounterState = 0;
 
 // Fonctions
 int getCounterState(){
-	return CounterState;
+  return CounterState;
 }
 
 int getRobotStatus(){
-	return robot_status;
+  return robot_status;
 }
 
 int changeRobotStatusToExploration(){
-	robot_status = ROBOT_STATUS_EXPLORATION;
+  robot_status = ROBOT_STATUS_EXPLORATION;
 }
 
 int changeRobotStatusToPanic(){
-	robot_status = 1;
+  robot_status = ROBOT_STATUS_PANIC;
 }
 
 
 static void serial_start(void)
 {
-	static SerialConfig ser_cfg = {
-	    115200,
-	    0,
-	    0,
-	    0,
-	};
+  static SerialConfig ser_cfg = {
+      115200,
+      0,
+      0,
+      0,
+  };
 
-	sdStart(&SD3, &ser_cfg); // UART3.
+  sdStart(&SD3, &ser_cfg); // UART3.
 }
 
 static void timer12_start(void){
@@ -87,11 +87,11 @@ static THD_FUNCTION(ThdSensor, arg) {
     (void)arg;
 
     while(1){
-    	// Update IR sensors
-    	proximity_values_right = get_prox(0) + get_prox(1);
-    	proximity_values_left = get_prox(6) + get_prox(7);
+      // Update IR sensors
+      proximity_values_right = get_prox(0) + get_prox(1);
+      proximity_values_left = get_prox(6) + get_prox(7);
 
-        chThdYield();
+      chThdYield();
     }
 }
 
@@ -103,16 +103,16 @@ static THD_FUNCTION(ThdFrontLed, arg) {
     (void)arg;
 
     while(1){
-    	// Front LED (red) blink if in panic mode
-    	if (robot_status == ROBOT_STATUS_PANIC)
-    	{
-    		palTogglePad(GPIOD, GPIOD_LED_FRONT);
-    	}
-        else
-        {
-        	palClearPad(GPIOD, GPIOD_LED_FRONT);
-        }
-        chThdSleepMilliseconds(100);
+      // Front LED (red) blink if in panic mode
+      if (robot_status == ROBOT_STATUS_PANIC)
+      {
+        palTogglePad(GPIOD, GPIOD_LED_FRONT);
+      }
+      else
+      {
+        palClearPad(GPIOD, GPIOD_LED_FRONT);
+      }
+      chThdSleepMilliseconds(100);
     }
 }
 
@@ -124,23 +124,23 @@ static THD_FUNCTION(ThdBodyLed, arg) {
     (void)arg;
 
     while(1){
-    	// Body LED (green) turn on if in exploration mode and blink if turning
-    	if (robot_status == ROBOT_STATUS_EXPLORATION)
-    	{
-    		if (proximity_values_right + proximity_values_left > 100)
-    		{
-    			palTogglePad(GPIOB, GPIOB_LED_BODY);
-    		}
-    		else
-    		{
-    			palSetPad(GPIOB, GPIOB_LED_BODY);
-    		}
-    	}
+      // Body LED (green) turn on if in exploration mode and blink if turning
+      if (robot_status == ROBOT_STATUS_EXPLORATION)
+      {
+        if (proximity_values_right + proximity_values_left > 100)
+        {
+          palTogglePad(GPIOB, GPIOB_LED_BODY);
+        }
         else
         {
-        	palClearPad(GPIOB, GPIOB_LED_BODY);
+          palSetPad(GPIOB, GPIOB_LED_BODY);
         }
-        chThdSleepMilliseconds(100);
+      }
+      else
+      {
+        palClearPad(GPIOB, GPIOB_LED_BODY);
+      }
+      chThdSleepMilliseconds(100);
     }
 }
 
@@ -152,41 +152,40 @@ static THD_FUNCTION(ThdMove, arg) {
     (void)arg;
 
     while(1){
-    	// Check if in exploration mode
-    	if (robot_status == ROBOT_STATUS_EXPLORATION)
-    	{
-    		// Check if there is an obstacle
-			if (proximity_values_right + proximity_values_left < 100)
-			{
-				left_motor_set_speed(ROBOT_SPEED_MEDIUM);
-				right_motor_set_speed(ROBOT_SPEED_MEDIUM);
-			}
-			else
-			{
-				// Obstacle from the right?
-				if (proximity_values_right > proximity_values_left)
-				{
-					// Turn left
-					left_motor_set_speed(-ROBOT_SPEED_MEDIUM);
-					right_motor_set_speed(ROBOT_SPEED_MEDIUM);
-				}
-				// Obstacle from the left?
-				else
-				{
-					// Turn right
-					left_motor_set_speed(ROBOT_SPEED_MEDIUM);
-					right_motor_set_speed(-ROBOT_SPEED_MEDIUM);
-				}
-			}
-
-    	}
-    	// Panic mode
-    	else
-    	{
-    		left_motor_set_speed(ROBOT_SPEED_MEDIUM);
-    		right_motor_set_speed(ROBOT_SPEED_MAX);
-    	}
-    	chThdSleepMilliseconds(10);
+      // Check if in exploration mode
+      if (robot_status == ROBOT_STATUS_EXPLORATION)
+      {
+        // Check if there is an obstacle
+        if (proximity_values_right + proximity_values_left < 100)
+        {
+          left_motor_set_speed(ROBOT_SPEED_MEDIUM);
+          right_motor_set_speed(ROBOT_SPEED_MEDIUM);
+        }
+        else
+        {
+          // Obstacle from the right?
+          if (proximity_values_right > proximity_values_left)
+          {
+            // Turn left
+            left_motor_set_speed(-ROBOT_SPEED_MEDIUM);
+            right_motor_set_speed(ROBOT_SPEED_MEDIUM);
+          }
+          // Obstacle from the left?
+          else
+          {
+            // Turn right
+            left_motor_set_speed(ROBOT_SPEED_MEDIUM);
+            right_motor_set_speed(-ROBOT_SPEED_MEDIUM);
+          }
+        }
+      }
+      // Panic mode
+      else
+      {
+        left_motor_set_speed(ROBOT_SPEED_MEDIUM);
+        right_motor_set_speed(ROBOT_SPEED_MAX);
+      }
+      chThdSleepMilliseconds(10);
     }
 }
 
@@ -196,28 +195,28 @@ static THD_FUNCTION(ThdSpeaker, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
-static int already_start = 0;
+    static int already_start = 0;
     while(1){
-        // Play death sound when in Panic mode
-    	if (robot_status == ROBOT_STATUS_PANIC)
-    	{
-    		if(already_start == 0)
-    		{
-    			playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
-    			already_start = 1;
-    		}
-    	}
-    	// Play music while exploration
-        else
+      // Play death sound when in Panic mode
+      if (robot_status == ROBOT_STATUS_PANIC)
+      {
+        if(already_start == 0)
         {
-        	already_start = 0;
-        	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
+          playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
+          already_start = 1;
         }
-        chThdSleepMilliseconds(100);
+      }
+      // Play music while exploration
+      else
+      {
+        already_start = 0;
+        playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
+      }
+      chThdSleepMilliseconds(100);
     }
 }
 
-//Compteur
+// Counter
 static THD_WORKING_AREA(waThdCounter, 128);
 static THD_FUNCTION(ThdCounter, arg) {
 
@@ -225,41 +224,40 @@ static THD_FUNCTION(ThdCounter, arg) {
     (void)arg;
     int Counter = 0;
     while(1){
-    	if(robot_status == ROBOT_STATUS_PANIC)
-    	{
-    		CounterState = 1;
-    		if(Counter < 4)
-    		{
-    			Counter += 1;
-    			chThdSleepMilliseconds(1000);
-    		}
-    		else{
-    			CounterState = 0;
-    			Counter = 0;
-    		}
-    	}
+      if(robot_status == ROBOT_STATUS_PANIC)
+      {
+        CounterState = 1;
+        if(Counter < 4)
+        {
+          Counter += 1;
+          chThdSleepMilliseconds(1000);
+        }
+        else{
+          CounterState = 0;
+          Counter = 0;
+        }
+      }
 
-    	chThdSleepMilliseconds(100);
+      chThdSleepMilliseconds(100);
     }
 }
 
 int main(void)
 {
-	// Inits
+    // Inits
     halInit();
     chSysInit();
     mpu_init();
-    //starts the serial communication
+    // Starts the serial communication
     serial_start();
-    //starts the USB communication
+    // Starts the USB communication
     usb_start();
-    //starts timer 12
+    // Starts timer 12
     timer12_start();
     // Motors
     motors_init();
     // IR sensors
     proximity_start();
-    //IR sensors calibration
 
     // Speaker
     dac_start();
@@ -277,20 +275,21 @@ int main(void)
     chThdCreateStatic(waThdBodyLed, sizeof(waThdBodyLed), NORMALPRIO, ThdBodyLed, NULL);
     // Motors
     chThdCreateStatic(waThdMove, sizeof(waThdMove), NORMALPRIO, ThdMove, NULL);
-	// Speaker
+    // Speaker
     chThdCreateStatic(waThdSpeaker, sizeof(waThdSpeaker), NORMALPRIO, ThdSpeaker, NULL);
     // Counter
     chThdCreateStatic(waThdCounter, sizeof(waThdCounter), NORMALPRIO , ThdCounter, NULL);
-    //calibrate ir
+
+    // IR sensors calibration
     calibrate_ir();
-    //Melody
+    // Melody
     playMelodyStart();
     // Wait 2 sec to be sure the e-puck is in a stable position
     chThdSleepMilliseconds(2000);
 
     /* Infinite loop. */
     while (1){
-    	chThdSleepMilliseconds(2000);
+      chThdSleepMilliseconds(2000);
     }
 }
 
