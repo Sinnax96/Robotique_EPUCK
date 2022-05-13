@@ -9,7 +9,7 @@
 #include <arm_math.h>
 
 
-#define MIN_VALUE_THRESHOLD 180
+#define MIN_VALUE_THRESHOLD 190
 
 /*
 *	Callback called when the demodulation of the four microphones is done.

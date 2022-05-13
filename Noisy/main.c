@@ -19,7 +19,7 @@
 #include <audio/play_melody.h>
 
 
-// ...
+
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
@@ -47,19 +47,6 @@ void changeRobotStatusToExploration(){
 
 void changeRobotStatusToPanic(){
   robot_status = ROBOT_STATUS_PANIC;
-}
-
-
-static void serial_start(void)
-{
-  static SerialConfig ser_cfg = {
-      115200,
-      0,
-      0,
-      0,
-  };
-
-  sdStart(&SD3, &ser_cfg); // UART3.
 }
 
 // Threads //
@@ -228,13 +215,7 @@ int main(void)
     // Inits
     halInit();
     chSysInit();
-    //mpu_init();
-    // Starts the serial communication
-    serial_start();
-    // Starts the USB communication
-   // usb_start();
-    // Starts timer 12
-    //timer12_start();
+
     // Motors
     motors_init();
     // IR sensors
@@ -262,9 +243,9 @@ int main(void)
     // IR sensors calibration
     calibrate_ir();
     // Speaker
-     dac_start();
-     // Melody
-     playMelodyStart();
+    dac_start();
+    // Melody
+    playMelodyStart();
 
     // Wait 2 sec to be sure the e-puck is in a stable position
     chThdSleepMilliseconds(2000);
