@@ -41,11 +41,11 @@ int getRobotStatus(){
   return robot_status;
 }
 
-int changeRobotStatusToExploration(){
+void changeRobotStatusToExploration(){
   robot_status = ROBOT_STATUS_EXPLORATION;
 }
 
-int changeRobotStatusToPanic(){
+void changeRobotStatusToPanic(){
   robot_status = ROBOT_STATUS_PANIC;
 }
 
@@ -60,22 +60,6 @@ static void serial_start(void)
   };
 
   sdStart(&SD3, &ser_cfg); // UART3.
-}
-
-static void timer12_start(void){
-    //General Purpose Timer configuration   
-    //timer 12 is a 16 bit timer so we can measure time
-    //to about 65ms with a 1Mhz counter
-    static const GPTConfig gpt12cfg = {
-        1000000,        // 1MHz timer clock in order to measure uS.
-        NULL,           // Timer callback.
-        0,
-        0
-    };
-
-    gptStart(&GPTD12, &gpt12cfg);
-    //let the timer count to max value
-    gptStartContinuous(&GPTD12, 0xFFFF);
 }
 
 // Threads //
@@ -195,22 +179,19 @@ static THD_FUNCTION(ThdSpeaker, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
-    static int already_start = 0;
+
     while(1){
       // Play death sound when in Panic mode
       if (robot_status == ROBOT_STATUS_PANIC)
       {
-        if(already_start == 0)
-        {
-          playMelody(MARIO_DEATH, ML_FORCE_CHANGE, NULL);
-          already_start = 1;
-        }
+    	  stopCurrentMelody();
+    	  playNote(NOTE_G6,400);
+    	  playNote(NOTE_C6,400);
       }
       // Play music while exploration
       else
       {
-        already_start = 0;
-        playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
+    	  playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
       }
       chThdSleepMilliseconds(100);
     }
@@ -238,7 +219,7 @@ static THD_FUNCTION(ThdCounter, arg) {
         }
       }
 
-      chThdSleepMilliseconds(100);
+      chThdSleepMilliseconds(30);
     }
 }
 
@@ -247,20 +228,18 @@ int main(void)
     // Inits
     halInit();
     chSysInit();
-    mpu_init();
+    //mpu_init();
     // Starts the serial communication
     serial_start();
     // Starts the USB communication
-    usb_start();
+   // usb_start();
     // Starts timer 12
-    timer12_start();
+    //timer12_start();
     // Motors
     motors_init();
     // IR sensors
     proximity_start();
 
-    // Speaker
-    dac_start();
     // Inits the Inter Process Communication bus
     messagebus_init(&bus, &bus_lock, &bus_condvar);
 
@@ -282,8 +261,11 @@ int main(void)
 
     // IR sensors calibration
     calibrate_ir();
-    // Melody
-    playMelodyStart();
+    // Speaker
+     dac_start();
+     // Melody
+     playMelodyStart();
+
     // Wait 2 sec to be sure the e-puck is in a stable position
     chThdSleepMilliseconds(2000);
 

@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "camera/dcmi_camera.h"
+
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
@@ -30,7 +30,7 @@ extern parameter_namespace_t parameter_root;
 
 int getCounterState(void);
 int getRobotStatus(void);
-int changeRobotStatusToExploration(void);
-int changeRobotStatusToPanic(void);
+void changeRobotStatusToExploration(void);
+void changeRobotStatusToPanic(void);
 
 #endif

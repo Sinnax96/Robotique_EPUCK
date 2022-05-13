@@ -35,7 +35,5 @@ void processAudioData(int16_t *data, uint16_t num_samples){
 	{
 		changeRobotStatusToExploration();
 	}
-
-	static uint16_t nb_samples = 0;
 }
 
